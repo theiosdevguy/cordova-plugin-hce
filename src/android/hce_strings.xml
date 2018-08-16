@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    <string name="service_name">CardEmulation Sample</string>
+    <string name="service_name">5THRU CardEmulation</string>
     <string name="card_title">Sample Loyalty Card</string>
+  <string name="servicedesc">5THRU Payment Service</string>
+  <string name="paymentGroup">5THRU Payment Service</string>
+  <string name="PPSE">PPSE</string>
+  <string name="Visa">Visa</string>
 </resources>

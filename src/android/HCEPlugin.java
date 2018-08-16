@@ -3,6 +3,10 @@
 
 package com.megster.cordova.hce;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.nfc.NfcAdapter;
+import android.nfc.cardemulation.CardEmulation;
 import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
@@ -18,6 +22,7 @@ public class HCEPlugin extends CordovaPlugin {
     private static final String REGISTER_COMMAND_CALLBACK = "registerCommandCallback";
     private static final String SEND_RESPONSE = "sendResponse";
     private static final String REGISTER_DEACTIVATED_CALLBACK = "registerDeactivatedCallback";
+    private static final String INITIALIZE_NFC_READ = "initializeNFCRead";
     private static final String TAG = "HCEPlugin";
 
     private CallbackContext onCommandCallback;
@@ -29,6 +34,9 @@ public class HCEPlugin extends CordovaPlugin {
         Log.d(TAG, action);
 
         if (action.equalsIgnoreCase(REGISTER_COMMAND_CALLBACK)) {
+
+            Log.d(TAG, "---- REGISTER_COMMAND_CALLBACK ----");
+
 
             // TODO this would be better in an initializer
             CordovaApduService.setHCEPlugin(this);
@@ -58,7 +66,23 @@ public class HCEPlugin extends CordovaPlugin {
             result.setKeepCallback(true);
             callbackContext.sendPluginResult(result);
 
-        } else {
+        }
+        else if (action.equalsIgnoreCase(INITIALIZE_NFC_READ)) {
+            CardEmulation cardEmulationManager = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this.cordova.getActivity()));
+            ComponentName paymentServiceComponent =
+                    new ComponentName(this.cordova.getActivity().getApplicationContext(), CordovaApduService.class.getCanonicalName());
+
+            if (!cardEmulationManager.isDefaultServiceForCategory(paymentServiceComponent, CardEmulation.CATEGORY_PAYMENT)) {
+                Intent intent = new Intent(CardEmulation.ACTION_CHANGE_DEFAULT);
+                intent.putExtra(CardEmulation.EXTRA_CATEGORY, CardEmulation.CATEGORY_PAYMENT);
+                intent.putExtra(CardEmulation.EXTRA_SERVICE_COMPONENT, paymentServiceComponent);
+                this.cordova.getActivity().startActivityForResult(intent, 0);
+                Log.i(TAG, "onCreate: Requested Android to make SwipeYours the default payment app");
+            } else {
+                Log.i(TAG, "onCreate: SwipeYours is the default NFC payment app");
+            }
+        }
+        else {
 
             return false;
 
