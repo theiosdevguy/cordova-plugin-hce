@@ -67,6 +67,12 @@
         <source-file src="src/android/CordovaApduService.java"
                 target-dir="src/com/megster/cordova/hce"/>
 
+        <source-file src="src/android/Constants.java"
+            target-dir="src/com/megster/cordova/hce"/>
+
+        <source-file src="src/android/Util.java"
+            target-dir="src/com/megster/cordova/hce"/>
+
         <source-file src="src/android/aid_list.xml"
                 target-dir="res/xml"/>
 
