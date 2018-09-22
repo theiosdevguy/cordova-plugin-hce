@@ -8,6 +8,14 @@ module.exports = {
       cordova.exec(success, failure, 'HCE', 'initializeNFCRead', []);
     },
 
+    setTrackData: function(trackData, success, failure) {
+        cordova.exec(success, failure, 'HCE', 'setTrackData', [trackData]);
+    },
+
+    resetTrackData: function(success, failure) {
+        cordova.exec(success, failure, 'HCE', 'resetTrackData', []);
+    },
+
     // Register to receive APDU commands from the remote device.
     // Commands will be sent as Uint8Array to the success callback. The success
     // callback is long lived and may be called many times.

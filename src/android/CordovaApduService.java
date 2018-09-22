@@ -15,13 +15,18 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CordovaApduService extends HostApduService implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class CordovaApduService extends HostApduService {
 
     private static final String TAG = "CordovaApduService";
 
     // tight binding between the service and plugin
     // future versions could use bind
     private static HCEPlugin hcePlugin;
+
+    public static HCEPlugin getHcePlugin() {
+        return hcePlugin;
+    }
+
     private static CordovaApduService cordovaApduService;
 
     static void setHCEPlugin(HCEPlugin _hcePlugin) {
@@ -176,12 +181,20 @@ public class CordovaApduService extends HostApduService implements SharedPrefere
     private static final Pattern TRACK_2_PATTERN = Pattern.compile(".*;(\\d{12,19}=\\d{1,128})\\?.*");
 
     /*
-     *  Unlike the upper case commands above, the Read REC response changes depending on the track 2
-     *  portion of the user's magnetic stripe data.
-     */
+         *  Unlike the upper case commands above, the Read REC response changes depending on the track 2
+         *  portion of the user's magnetic stripe data.
+         */
     private static byte[] readRecResponse = {};
 
-    private static void configureReadRecResponse(String swipeData) {
+    public static byte[] getReadRecResponse() {
+        return readRecResponse;
+    }
+
+    public static void setReadRecResponse(byte[] readRecResponse) {
+        CordovaApduService.readRecResponse = readRecResponse;
+    }
+
+    public static void configureReadRecResponse(String swipeData) {
         Matcher matcher = TRACK_2_PATTERN.matcher(swipeData);
         if (matcher.matches()) {
 
@@ -267,20 +280,27 @@ public class CordovaApduService extends HostApduService implements SharedPrefere
             responseApdu = ISO7816_UNKNOWN_ERROR_RESPONSE;
         }
 
-        Log.i(TAG, inboundApduDescription + Util.byteArrayToHex(commandApdu) +
-                " / Response: " + Util.byteArrayToHex(responseApdu));
+
+
+        String message = inboundApduDescription + Util.byteArrayToHex(commandApdu) +
+                " / Response: " + Util.byteArrayToHex(responseApdu);
+
+        if (hcePlugin != null)
+            hcePlugin.onNotificationCallback.success(message);
+
+        Log.i(TAG, message);
 
         return responseApdu;
     }
 
-    @Override
+/*    @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         Log.i(TAG, "onSharedPreferenceChanged: key=" + key);
         if (Constants.SWIPE_DATA_PREF_KEY.equals(key)) {
             String swipeData = prefs.getString(Constants.SWIPE_DATA_PREF_KEY, Constants.DEFAULT_SWIPE_DATA);
             configureReadRecResponse(swipeData);
         }
-    }
+    }*/
 
     /**
      * Called if the connection to the NFC card is lost, in order to let the application know the
@@ -323,10 +343,10 @@ public class CordovaApduService extends HostApduService implements SharedPrefere
 
         // Attempt to get swipe data that SetCardActivity saved as a shared preference,
         // otherwise use the default no-balance prepaid visa configured into the app.
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        /*SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String swipeData = prefs.getString(Constants.SWIPE_DATA_PREF_KEY, Constants.DEFAULT_SWIPE_DATA);
         configureReadRecResponse(swipeData);
-        prefs.registerOnSharedPreferenceChangeListener(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);*/
     }
 
 }

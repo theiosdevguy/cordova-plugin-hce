@@ -23,8 +23,11 @@ public class HCEPlugin extends CordovaPlugin {
     private static final String SEND_RESPONSE = "sendResponse";
     private static final String REGISTER_DEACTIVATED_CALLBACK = "registerDeactivatedCallback";
     private static final String INITIALIZE_NFC_READ = "initializeNFCRead";
+    private static final String SET_TRACK_DATA = "setTrackData";
+    private static final String RESET_TRACK_DATA = "resetTrackData";
     private static final String TAG = "HCEPlugin";
 
+    public CallbackContext onNotificationCallback;
     private CallbackContext onCommandCallback;
     private CallbackContext onDeactivatedCallback;
 
@@ -68,6 +71,10 @@ public class HCEPlugin extends CordovaPlugin {
 
         }
         else if (action.equalsIgnoreCase(INITIALIZE_NFC_READ)) {
+            onNotificationCallback = callbackContext;
+
+            CordovaApduService.setHCEPlugin(this);
+
             CardEmulation cardEmulationManager = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this.cordova.getActivity()));
             ComponentName paymentServiceComponent =
                     new ComponentName(this.cordova.getActivity().getApplicationContext(), CordovaApduService.class.getCanonicalName());
@@ -77,9 +84,25 @@ public class HCEPlugin extends CordovaPlugin {
                 intent.putExtra(CardEmulation.EXTRA_CATEGORY, CardEmulation.CATEGORY_PAYMENT);
                 intent.putExtra(CardEmulation.EXTRA_SERVICE_COMPONENT, paymentServiceComponent);
                 this.cordova.getActivity().startActivityForResult(intent, 0);
+
+                onNotificationCallback.success("Requested Android to make 5THRU the default NFC payment app");
+
                 Log.i(TAG, "onCreate: Requested Android to make SwipeYours the default payment app");
             } else {
                 Log.i(TAG, "onCreate: SwipeYours is the default NFC payment app");
+
+                onNotificationCallback.success("5HTRU is the default NFC payment app");
+            }
+        }
+        else if (action.equalsIgnoreCase(SET_TRACK_DATA)) {
+            if (CordovaApduService.getHcePlugin() != null) {
+                CordovaApduService.setReadRecResponse(new byte[0]);
+                CordovaApduService.configureReadRecResponse(args.getString(0));
+            }
+        }
+        else if (action.equalsIgnoreCase(RESET_TRACK_DATA)) {
+            if (CordovaApduService.getHcePlugin() != null) {
+                CordovaApduService.setReadRecResponse(new byte[0]);
             }
         }
         else {
